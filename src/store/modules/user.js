@@ -7,7 +7,8 @@ const state = {
   name: '',
   avatar: '',
   introduction: '',
-  roles: []
+  roles: [],
+  perms: []
 }
 
 const mutations = {
@@ -25,6 +26,9 @@ const mutations = {
   },
   SET_ROLES: (state, roles) => {
     state.roles = roles
+  },
+  SET_PERMS: (state, perms) => {
+    state.perms = perms
   }
 }
 
@@ -34,7 +38,8 @@ const actions = {
     const { username, password } = userInfo
     return new Promise((resolve, reject) => {
       login({ username: username.trim(), password: password }).then(response => {
-        const { data } = response
+        // console.log('res1',response)
+        const data = response.data.data
         commit('SET_TOKEN', data.token)
         setToken(data.token)
         resolve()
@@ -48,24 +53,21 @@ const actions = {
   getInfo({ commit, state }) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
-        const { data } = response
-
-        if (!data) {
-          reject('Verification failed, please Login again.')
+        const { data } = response.data
+        console.log('data', data)
+        if (data.perms && data.perms.length > 0) {
+          commit('SET_PERMS', data.perms)
+          console.log(state.perms)
+        } else {
+          reject('getInfo: perms must be a non-null array !')
         }
 
-        const { roles, name, avatar, introduction } = data
-
-        // roles must be a non-empty array
-        if (!roles || roles.length <= 0) {
-          reject('getInfo: roles must be a non-null array!')
-        }
+        const { roles, name, avatar } = data
 
         commit('SET_ROLES', roles)
         commit('SET_NAME', name)
         commit('SET_AVATAR', avatar)
-        commit('SET_INTRODUCTION', introduction)
-        resolve(data)
+        resolve(data) // 原本是data，我参考litemall用response代替(其实两个差不多,response的数据更完整，但是很多用不着)
       }).catch(error => {
         reject(error)
       })
@@ -78,6 +80,7 @@ const actions = {
       logout(state.token).then(() => {
         commit('SET_TOKEN', '')
         commit('SET_ROLES', [])
+        commit('SET_PERMS', [])
         removeToken()
         resetRouter()
 
@@ -102,12 +105,10 @@ const actions = {
     })
   },
 
-  // dynamically modify permissions
+  // 动态修改权限
   async changeRoles({ commit, dispatch }, role) {
-    const token = role + '-token'
-
-    commit('SET_TOKEN', token)
-    setToken(token)
+    commit('SET_TOKEN', role)
+    setToken(role)
 
     const { roles } = await dispatch('getInfo')
 

@@ -218,3 +218,14 @@ export function export_json_to_excel({
     type: "application/octet-stream"
   }), `${filename}.${bookType}`);
 }
+
+function formatJson(jsonSource, jsonFillter) {
+  return jsonSource.map(v => jsonFillter.map(j => {
+      return v[j]
+  }))
+}
+
+export function export_json_to_excel2(th, jsonSource, jsonFillter, name) {
+  const data = formatJson(jsonSource, jsonFillter)
+  export_json_to_excel({header: th, data, filename: name})
+}

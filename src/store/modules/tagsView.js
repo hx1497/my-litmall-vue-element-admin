@@ -5,8 +5,14 @@ const state = {
 
 const mutations = {
   ADD_VISITED_VIEW: (state, view) => {
+    // some() 方法测试数组中是不是至少有1个元素通过了被提供的函数测试。
+    // 意思是如果 visitedViews 中至少一个 path 与传入实参 view 的 path 相同就不执行，即判断 visitedViews 中是否包含实参 view
     if (state.visitedViews.some(v => v.path === view.path)) return
+    // 否则将实参 view 做处理后添加进 visitedViews
     state.visitedViews.push(
+      // Object.assign() 方法用于将所有可枚举属性的值从一个或多个源对象分配到目标对象。它将返回目标对象。
+      // 第一个参数是目标对象， 此后的都是源对象
+      // 即：将实参 view 和{ title }对象添加到空对象中，再将空对象 push 进数组 visitedViews 中
       Object.assign({}, view, {
         title: view.meta.title || 'no-name'
       })
